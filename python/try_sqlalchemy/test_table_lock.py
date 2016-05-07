@@ -12,7 +12,7 @@ from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declarative_base
 
 # DB_URL = "sqlite:///:memory:"
-DB_URL = "mysql://localhost/test"
+DB_URL = "mysql://root@localhost/test"
 eng1 = create_engine(DB_URL)
 eng2 = create_engine(DB_URL, poolclass=pool.NullPool)
 Base = declarative_base()
