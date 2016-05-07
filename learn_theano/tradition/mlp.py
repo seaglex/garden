@@ -30,7 +30,7 @@ class Activator(object):
         self.activate = activate
         self.thresh = thresh
 
-class Layer(object):
+class FullConnectedLayer(object):
     def __init__(self, rng, input, in_dim, out_dim, activator, name=""):
         W_init = np.asarray(
             rng.uniform(
@@ -40,6 +40,7 @@ class Layer(object):
             ),
             dtype=theano.config.floatX
         )
+        # print(name, "W_bound", activator.thresh)
         b_init = np.asarray(
             np.zeros(out_dim, dtype=np.float64),
             dtype=theano.config.floatX
@@ -55,9 +56,10 @@ class Layer(object):
             name=name+"b",
             borrow=True
         )
+        self.params = [self.W, self.b]
         self.output = activator.activate(T.dot(self.input, self.W) + self.b)
 
-class LogisticLayer(Layer):
+class LogisticLayer(FullConnectedLayer):
     def __init__(self, rng, input, in_dim, out_dim, activator):
         super(LogisticLayer, self).__init__(rng, input, in_dim, out_dim, activator, "LR.")
         self.y_pred = T.argmax(self.output, axis=1)
@@ -70,7 +72,7 @@ class MLP(object):
     def __init__(self, rng, in_dim, hidden_dim, out_dim):
         X = T.matrix("X")
         y = T.ivector("y")
-        hidden_layer = Layer(
+        hidden_layer = FullConnectedLayer(
             rng, X, in_dim, hidden_dim,
             Activator(T.tanh, np.sqrt(6/(in_dim+hidden_dim))),
             "hidden.")
