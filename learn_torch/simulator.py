@@ -8,6 +8,9 @@ import torchvision.transforms as T
 from PIL import Image   # python image library
 import itertools
 
+import dqn
+
+
 # ipython
 is_ipython = 'inline' in matplotlib.get_backend()
 if is_ipython:
@@ -118,7 +121,7 @@ def simulation(num_episodes, model, memory):
                 break
         # Update the target network, copying all weights and biases in DQN
         if i_episode % TARGET_UPDATE == 0:
-            target_net.load_state_dict(policy_net.state_dict())
+            model.update_model()
 
 if __name__ == "__main__":
     env = gym.make('CartPole-v0').unwrapped
@@ -126,6 +129,21 @@ if __name__ == "__main__":
     env.reset()
     plt.figure()
     plt.imshow(get_screen().cpu().squeeze(0).permute(1, 2, 0).numpy(),
-               interpolation='none')
+              interpolation='none')
     plt.title('Example extracted screen')
+    plt.show()
+
+    init_screen = get_screen()
+    _, _, screen_height, screen_width = init_screen.shape
+    # Get number of actions from gym action space
+    n_actions = env.action_space.n
+
+    memory = dqn.ReplayMemory(10000)
+
+    simulation(150, dqn.DQNModel(screen_height, screen_width, n_actions, memory, device), memory)
+
+    print('Complete')
+    env.render()
+    env.close()
+    plt.ioff()
     plt.show()
