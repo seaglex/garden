@@ -31,6 +31,9 @@ def match1(s, pattern):
 
 
 def match2(s, pattern):
+    """
+    *分割了子串，子串匹配即可
+    """
     p_beg = 0
     p_pos = 0
     pos = 0

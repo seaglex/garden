@@ -13,11 +13,13 @@ _operator_priorities = {
     ")": MIN_PRIORITY,
 }
 
+
 def factorial(n):
     result = 1
-    for x in range(1, n+1):
+    for x in range(1, n + 1):
         result *= x
     return result
+
 
 _operator_funcs = {
     '!': (1, factorial),
@@ -26,6 +28,7 @@ _operator_funcs = {
     "*": (2, lambda x, y: x * y),
     "/": (2, lambda x, y: x / y),
 }
+
 
 def calculate_partial(operands, operators, priority):
     while operators:
@@ -42,6 +45,7 @@ def calculate_partial(operands, operators, priority):
         else:
             break
     return
+
 
 def parse(s):
     operators = []
@@ -69,11 +73,13 @@ def parse(s):
         return 0
     return operands[0]
 
+
 def safe_parse(s):
     try:
         return parse(s)
     except Exception as e:
         print(s, e)
+
 
 if __name__ == "__main__":
     # pdb.set_trace()
