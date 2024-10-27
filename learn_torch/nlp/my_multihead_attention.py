@@ -25,15 +25,15 @@ class MyMultiHeadAttention(nn.Module):
         :return: [target_len, batch_sz, d_model]
         '''
         in_proj = F.linear(x, self.in_proj_weight, self.in_proj_bias)
-        in_proj = in_proj.transpose(0, -2)  # [batch_sz, source_len, d_model]
+        in_proj = in_proj.transpose(0, -2)  # [batch_sz, source_len, 3 * d_model]
         q, k, v = in_proj.chunk(3, dim=-1)
-        q = q.unflatten(-1, (self._n_heads, -1)).transpose(-2, -3)  # [batch_sz, n_heads, source_len, d_model / n_head]
+        q = q.unflatten(-1, (self._n_heads, -1)).transpose(-2, -3)  # [batch_sz, n_heads, target_len, d_model / n_head]
         k = k.unflatten(-1, (self._n_heads, -1)).transpose(-2, -3)
-        v = v.unflatten(-1, (self._n_heads, -1)).transpose(-2, -3)  # [batch_sz, n_heads, target_len, d_model / n_head]
+        v = v.unflatten(-1, (self._n_heads, -1)).transpose(-2, -3)  # [batch_sz, n_heads, source_len, d_model / n_head]
         attentions = q @ k.transpose(-1, -2) / math.sqrt(self._d_model / self._n_heads)  # [batch_sz, n_heads, target_len, source_len]
         attentions += attention_mask
         attentions = F.softmax(attentions, dim=-1)
-        out = attentions @ v
+        out = attentions @ v  # [batch_sz, n_heads, target_len, d_model / n_head]
         out = out.transpose(-2, -3).flatten(-2, -1).transpose(0, -2)
         out = F.linear(out, self.out_proj_weight, self.out_proj_bias)
         return out
