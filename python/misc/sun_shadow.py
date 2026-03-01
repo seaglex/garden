@@ -12,13 +12,28 @@ def transform(p: np.array):
     ])
     return p.dot(matrix)
 
+def get_min_alpha(gamma):
+    ETA = (23 + 26 / 60) / 180 * np.pi  # 黄赤交角
+    alpha = np.arctan(np.tan(gamma) / np.cos(ETA))
+    alpha[alpha==np.nan] = np.pi / 2
+    # 限制alpha和gamma在同一个象限
+    alpha -= np.floor((alpha - gamma) / np.pi) * np.pi
+    alpha[alpha - gamma > np.pi / 2] -= np.pi
+    return alpha
+
 def get_sun_angle(alpha, beta, gamma):
+    """
+    计算最小太阳和人的夹角
+    """
     man = transform(np.array([np.sin(beta) * np.cos(alpha), np.sin(beta) * np.sin(alpha), np.cos(beta)]).transpose())
     sun = np.array([np.cos(gamma), np.sin(gamma), gamma*0.0]).transpose()
     results = np.sum(sun * man, axis=1) / (np.linalg.norm(sun, axis=1) * np.linalg.norm(man, axis=1))
     return np.arccos(results)
 
 def get_sun_shadow(alpha, beta, gamma):
+    """
+    计算影子方向
+    """
     man = transform(np.array([np.sin(beta) * np.cos(alpha), np.sin(beta) * np.sin(alpha), np.cos(beta)]).transpose())
     # north = - d man / dβ
     north = transform(-np.array([np.cos(beta) * np.cos(alpha), np.cos(beta) * np.sin(alpha), -np.sin(beta)]).transpose())
@@ -91,7 +106,29 @@ def draw_sun_shadow_in_one_day():
     plt.savefig('sun_shadow.png')
     # plt.show()
 
+def draw_min_sun_angles():
+    latitude1 = 40
+    latitude2 = 23 + 26/60
+    gamma = np.arange(0, 360) / 180 * np.pi
+    alphas = get_min_alpha(gamma)
+    beta1 = np.ones(gamma.shape) * (90 - latitude1) / 180 * np.pi
+    beta2 = np.ones(gamma.shape) * (90 - latitude2) / 180 * np.pi
+    angles1 = get_sun_angle(alphas, beta1, gamma) / np.pi * 180
+    angles2 = get_sun_angle(alphas, beta2, gamma) / np.pi * 180
+    plt.plot(np.arange(0, 360), angles1, 'r')
+    plt.plot(np.arange(0, 360), angles2, 'b')
+    plt.legend(["latitude: %f" % latitude1, "latitude: %f" % latitude2])
+    ETA = 23 + 26/60
+    plt.plot(np.arange(0, 360), latitude1 + ETA * np.cos(gamma), "r:")
+    plt.plot(np.arange(0, 360), latitude2 + ETA * np.cos(gamma), "b:")
+    plt.box(False)
+    plt.grid(True)
+    plt.savefig("min_angles.png")
+    print(latitude1, np.max(np.abs(angles1 - latitude1 - ETA * np.cos(gamma))))
+    print(latitude2, np.max(np.abs(angles2 - latitude2 - ETA * np.cos(gamma))))
+
 
 if __name__ == '__main__':
     # draw_sun_shadow_in_one_day()
-    draw_sun_angles()
+    # draw_sun_angles()
+    draw_min_sun_angles()
