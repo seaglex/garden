@@ -67,6 +67,7 @@ target/
 .idea/
 
 # data
+.env
 *.txt
 *.out
-
+*.png
